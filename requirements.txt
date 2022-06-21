@@ -1,0 +1,7 @@
+python-dotenv
+sqlalchemy
+PyMySQL
+mysqlclient
+pycodestyle
+jwt
+pyjwt
