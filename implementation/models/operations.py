@@ -1,35 +1,58 @@
-from pydantic import BaseModel
+from sqlmodel import Field, SQLModel
+from typing import List, Optional
+from datetime import date
+
+#  таблица номеров
+class phonenumbers(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True)
+    name: str
+    numbers: str
+    date = date.today()
+    update = date.today()
 
 
-class Operation(BaseModel):
-    id: int
+# добавление пользователя
+class Addendum(SQLModel):
     name: str
     numbers: str
 
-    class Coufig:
-        orm_mode= True
+# вывод списка обонентов
+class Withdrawalsubscribers(Addendum):
+    id: int
 
-# добавление пользователя
-class Addendum(BaseModel):
-    name: str
-    tel: str
 
 # обновление контакта
-class Update(BaseModel):
-    id: int
-    name: str = None
-    tel: str = None
+class Update(SQLModel):
+    name: Optional[str] = None
+    numbers: Optional[str] = None
+    update = date.today()
 
-# удаление коетакта
-class Delete(BaseModel):
-    id: int
+# таблица пользователей
+class users(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True)
+    name: str
+    password: str
+    date = date.today()
+
 
 # регистрация пользователя
-class Сreatings(BaseModel):
+class Rreatings(SQLModel):
     name: str
     password: str
 
+
 # вход пользователя
-class Authorization(BaseModel):
+class Authorization(SQLModel):
     name: str
     password: str
+
+
+# вывод данных о пользователе
+class UserData(SQLModel):
+    id: int
+    name: str
+
+
+
+
+

@@ -5,3 +5,5 @@ mysqlclient
 pycodestyle
 jwt
 pyjwt
+fastapi-sessions
+sqlmodel

@@ -1,6 +1,9 @@
-from fastapi import APIRouter
-from ..models.operations import Сreatings, Authorization
-from .realizationsuser import registration, authorization, creating_token
+from fastapi import APIRouter, Depends
+from ..models.operations import Rreatings, Authorization, UserData
+from .realizationsuser import registration, authorization
+from ..database import Session, get_session
+
+
 
 routerUser = APIRouter(
     prefix='/realizationUser'
@@ -8,16 +11,17 @@ routerUser = APIRouter(
 
 
 @routerUser.post('/registration')
-async def registration_user(user: Сreatings):
-    reg = await registration(user)
+async def registration_user(subscriber: Rreatings, session: Session = Depends(get_session)):
+    reg = await registration(subscriber, session)
     return reg
 
 
-@routerUser.post('/authorizations')
-async def authorization_user(user: Authorization):
-    entrance = await authorization(user)
-    if entrance.get('id'):
-        token = await creating_token(entrance)
-        return token
-    else:
-        return entrance
+
+@routerUser.post('/authorizations', response_model=list[UserData])
+async def authorization_user(user: Authorization, session: Session = Depends(get_session)):
+    entrance = await authorization(user, session)
+    return entrance
+
+
+
+# cookie: Optional[str] = Cookie(...), header: Optional[str] = Header(...)

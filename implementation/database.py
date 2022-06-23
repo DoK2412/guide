@@ -1,23 +1,12 @@
-from sqlalchemy import create_engine
-from  sqlalchemy.orm import sessionmaker
 from implementation.settings import setting
+from sqlmodel import Session, create_engine
 
 # подключение к базе
 engin = create_engine(
     setting.database_url
 )
 
-# создание сессии для работы
-Session = sessionmaker(
-    engin,
-    autoflush=False,
-    autocommit=False
-)
 
-# функция автоматизации сессий
 async def get_session():
-    session = Session()
-    try:
+    with Session(engin) as session:
         yield session
-    finally:
-        session.close()

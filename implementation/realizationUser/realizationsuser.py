@@ -1,14 +1,10 @@
-import datetime
-import jwt
-
-
-from implementation.tables import User
-from ..database import Session
-from ..settings import setting
+from fastapi import HTTPException
+from sqlmodel import Session, select
+from ..models.operations import users
 from passlib.context import CryptContext # хеширование паролей
 
 
-async def registration(user) -> dict:
+async def registration(subscriber, session: Session) -> dict:
     """
     Функция предназначена для регистрации пользователя в приложении
     производит проверку корректности данных, хеширует пароль и
@@ -16,31 +12,25 @@ async def registration(user) -> dict:
     :param user: - логин и пароль пользователя
     :return: - возвращает словарь с результатом выполнения функции
     """
-    session = Session()
-    users = session.query(User).filter(User.name == user.name).first()
-
-    if users is None and (user.name.isalpha() and user.password.isdigit()):
-        current_date = datetime.datetime.now()
+    contact = session.exec(select(users).filter(users.name == subscriber.name)).all()
+    if contact:
+        raise HTTPException(status_code=403, detail="The contact was found in the database")
+    elif not contact and (subscriber.name.isalpha() and subscriber.password.isdigit()):
         # кодирование пароля
         password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        code_key = password_context.hash(user.password)
-
-        user_app = User(
-            name=user.name.lower(),
-            password=code_key,
-            date=current_date,
-        )
-        session.add(user_app)
+        subscriber.password = password_context.hash(subscriber.password)
+        subscriber.name = subscriber.name.lower()
+        reg_subscriber = users.from_orm(subscriber)
+        session.add(reg_subscriber)
         session.commit()
+        session.refresh(reg_subscriber)
         return {'status': 200, 'massage': 'The user has been'
                                           ' added to the database'}
     else:
-        return {'status': 403, 'massage': 'The user is in the database or the'
-                                          ' name and password do not meet the'
-                                          ' standard'}
+        raise HTTPException(status_code=404, detail="The user is in the database or the name and password do not meet the standard")
 
 
-async def authorization(user) -> dict:
+async def authorization(subscriber, session: Session) -> dict:
     """
     Функция предназначена для входа пользователя в приложение с последующей
     его аудентификацией в нем.
@@ -48,30 +38,18 @@ async def authorization(user) -> dict:
     :return: возвращает словарь с пользовательским id и именем либо данными
     об ошибке
     """
-    session = Session()
-    users = session.query(User).filter(User.name == user.name).first()
-    if users:
-        data_processing = vars(users)
+    contact = session.exec(select(users).filter(users.name == subscriber.name)).all()
+    if not contact:
+        raise HTTPException(status_code=403, detail="The user is not in the database")
+    else:
         # кодирование пароля
         password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         # проверка с хранящимся в базе
-        if password_context.verify(user.password,
-                                   data_processing['password']):
-            return {'id': data_processing['id'],
-                    'name': data_processing['name']}
+        if password_context.verify(subscriber.password,
+                                   contact[0].password):
+            return contact
         else:
-            return {'status': 403, 'massage': 'The user is in the database or'
-                                              ' the name and password do not'
-                                              ' meet the standard'}
+            raise HTTPException(status_code=403, detail="Username or password is not correct")
 
-
-async def creating_token(user):
-    """
-    Функция предназнчена для создания токена для пользователя
-    :param user: данные о пользователе для преобразования в токен
-    :return: возвращает сформированный токен
-    """
-    tokens = jwt.encode(payload=user, key=setting.sekret)
-    return tokens
 
 
