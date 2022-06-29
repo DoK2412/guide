@@ -1,22 +1,37 @@
+from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import date
+import datetime
+
 
 #  таблица номеров
 class phonenumbers(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True)
+    id_user: int
     name: str
     numbers: str
     date = date.today()
     update = date.today()
+    removal: Optional[datetime.date] = None
 
 
-# добавление пользователя
-class Addendum(SQLModel):
+# получение данных аббонента
+class Addendum(BaseModel):
     name: str
     numbers: str
 
-# вывод списка обонентов
+
+
+# запись аббонента в справочник
+class Record():
+    id_user: Optional[str] = None
+    name: Optional[str] = None
+    numbers: Optional[str] = None
+
+
+
+# вывод списка аббонента
 class Withdrawalsubscribers(Addendum):
     id: int
 
@@ -26,6 +41,7 @@ class Update(SQLModel):
     name: Optional[str] = None
     numbers: Optional[str] = None
     update = date.today()
+
 
 # таблица пользователей
 class users(SQLModel, table=True):
@@ -55,4 +71,11 @@ class UserData(SQLModel):
 
 
 
+# таблица токенов
+class tokens(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True)
+    tokens: str
+    date = date.today()
 
+class App_token(SQLModel):
+    tokens: str

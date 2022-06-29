@@ -7,3 +7,4 @@ jwt
 pyjwt
 fastapi-sessions
 sqlmodel
+passlib[bcrypt]

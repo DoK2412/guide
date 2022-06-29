@@ -14,6 +14,7 @@ class Quide(Base):
     numbers = sa.Column(sa.VARCHAR(20), nullable=True)
     date = sa.Column(sa.Date, nullable=True)
     update = sa.Column(sa.Date, nullable=True)
+    removal = sa.Column(sa.Date, nullable=True)
 
 
 # таблица банных о пользователях справочника
@@ -22,4 +23,12 @@ class User(Base):
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.VARCHAR(100), nullable=True)
     password = sa.Column(sa.VARCHAR(100), nullable=True)
+    date = sa.Column(sa.Date, nullable=True)
+
+# таблица данных токенов
+class Token(Base):
+    __tablename__ = 'tokens'
+    id = sa.Column(sa.Integer, primary_key=True)
+    id_user = sa.Column(sa.Integer, sa.ForeignKey("users.id"), nullable=True)
+    tokens = sa.Column(sa.VARCHAR(100), nullable=True)
     date = sa.Column(sa.Date, nullable=True)

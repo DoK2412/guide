@@ -1,7 +1,18 @@
-from fastapi import HTTPException
+import jwt
+
+
+from ..settings import setting
+from fastapi import HTTPException, Response
 from sqlmodel import Session, select
 from ..models.operations import users
 from passlib.context import CryptContext # хеширование паролей
+from ..realizationUser.sessionuser import save_token
+
+
+async def jwt_toron(contact):
+    data = {'id': contact[0].id, 'name': contact[0].name}
+    tokens = jwt.encode(payload=data, key=setting.sekret)
+    return tokens
 
 
 async def registration(subscriber, session: Session) -> dict:
@@ -30,7 +41,7 @@ async def registration(subscriber, session: Session) -> dict:
         raise HTTPException(status_code=404, detail="The user is in the database or the name and password do not meet the standard")
 
 
-async def authorization(subscriber, session: Session) -> dict:
+async def authorization(subscriber, session: Session, response: Response) -> dict:
     """
     Функция предназначена для входа пользователя в приложение с последующей
     его аудентификацией в нем.
@@ -42,11 +53,14 @@ async def authorization(subscriber, session: Session) -> dict:
     if not contact:
         raise HTTPException(status_code=403, detail="The user is not in the database")
     else:
-        # кодирование пароля
+
         password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         # проверка с хранящимся в базе
         if password_context.verify(subscriber.password,
                                    contact[0].password):
+            token = await jwt_toron(contact)
+            await save_token(token, session)
+            response.set_cookie(key='token', value=token, httponly=True)
             return contact
         else:
             raise HTTPException(status_code=403, detail="Username or password is not correct")

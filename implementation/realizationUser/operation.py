@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from ..models.operations import Rreatings, Authorization, UserData
 from .realizationsuser import registration, authorization
 from ..database import Session, get_session
-
 
 
 routerUser = APIRouter(
@@ -16,12 +15,7 @@ async def registration_user(subscriber: Rreatings, session: Session = Depends(ge
     return reg
 
 
-
 @routerUser.post('/authorizations', response_model=list[UserData])
-async def authorization_user(user: Authorization, session: Session = Depends(get_session)):
-    entrance = await authorization(user, session)
+async def authorization_user(user: Authorization, response: Response, session: Session = Depends(get_session)):
+    entrance = await authorization(user, session, response)
     return entrance
-
-
-
-# cookie: Optional[str] = Cookie(...), header: Optional[str] = Header(...)
